@@ -6,6 +6,19 @@ function getTimeString(time){
     return `${hour} hour ${minute} minute ${remainingSecond} second ago`;
 }
 
+const loadCategoriesVideos = (id) =>{
+    fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
+        
+        .then(res => res.json())
+        .then(data => {
+            removeActiveClass();
+            const activeBtn = document.getElementById(`btn-${id}`);
+            console.log(activeBtn);
+            activeBtn.classList.add("active")
+            displayVideos(data.category);
+        })
+}
+
 
 const loadCategories = () => {
     fetch('https://openapi.programming-hero.com/api/phero-tube/categories')
@@ -13,19 +26,29 @@ const loadCategories = () => {
         .then(data => displayCategories(data.categories))
 }
 
+const removeActiveClass = () =>{
+    const buttons = document.getElementsByClassName("category-btn");
+    console.log(buttons);
+    for(let btn of buttons){
+        btn.classList.remove("active");
+    }
+}
 
 const displayCategories = (categories) => {
+    const categoryContainer = document.getElementById('category')
     categories.forEach(item => {
         console.log(item);
-        const categoryContainer = document.getElementById('category')
 
         // create a  button
-        const button = document.createElement("button")
-        button.classList = "btn"
-        button.innerText = item.category;
+        const buttonContainer = document.createElement("div")
+        buttonContainer.innerHTML = `
+            <button id="btn-${item.category_id}" onclick="loadCategoriesVideos(${item.category_id})" class = "btn category-btn">
+            ${item.category}
+            </button>
+        `
 
         // add button to category container
-        categoryContainer.append(button)
+        categoryContainer.append(buttonContainer)
     })
 }
 
@@ -36,6 +59,8 @@ const loadVideos = () => {
         .then(res => res.json())
         .then(data => displayVideos(data.videos))
 }
+
+
 
 // {
 //     "category_id": "1003",
@@ -59,6 +84,21 @@ const loadVideos = () => {
 // display Videos
 const displayVideos = (videos) => {
     const videosContainer = document.getElementById('videos')
+    videosContainer.innerHTML =""
+
+    if(videos.length == 0){
+        videosContainer.classList.remove("grid");
+        videosContainer.innerHTML = `
+        <div class = "min-h-[300px] flex flex-col gap-5 justify-center items-center">
+            <img src = "assets/Icon.png" />
+            <h2 class ="text-4xl font-bold"> No content here </h2>
+        </div>
+        `;
+        return;
+    }
+    else{
+        videosContainer.classList.add("grid")
+    }
 
     videos.forEach((video) => {
         console.log(video);
@@ -71,7 +111,7 @@ const displayVideos = (videos) => {
             alt="Shoes" 
             class='h-full w-full object-cover' />
             ${
-                video.others.posted_date?.length == 0 ? "" : `<span class="absolute right-2 bottom-2 bg-black rounded text-white px-2">${getTimeString(video.others.posted_date)}</span>`
+                video.others.posted_date?.length == 0 ? "" : `<span class="absolute right-2 text-xs bottom-2 bg-black rounded text-white px-2">${getTimeString(video.others.posted_date)}</span>`
             }
 
         </figure>
